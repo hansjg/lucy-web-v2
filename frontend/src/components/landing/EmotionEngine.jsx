@@ -1,42 +1,49 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 
-const emotions = [
+/*
+ * The "alive" act — a pinned 300vh scrub. Lucy (in LucyStage) stands
+ * center stage; scrolling walks her through emotional states. Each state
+ * change is broadcast so the stage swaps her pose and rim-light halo.
+ * Copy sits left, a live "state monitor" card sits right.
+ */
+
+const STATES = [
   {
     id: "joy",
     label: "Joy",
-    color: "#e8b44a",
-    line: "I love when you do that — try it again?",
-    desc: "Eyes widen, a bounce in her voice. Lucy crossfades into joy with a spring in every gesture.",
-    eye: "M20 32 Q32 16 44 32",
-    mouth: "M30 60 Q50 80 70 60",
+    pose: "excited",
+    halo: "pink",
+    color: "#d8578f",
+    line: "You got it working?! Show me, show me —",
+    desc: "Eyes bright, bouncing on the spot. Your wins are shared property.",
   },
   {
     id: "curiosity",
     label: "Curiosity",
-    color: "#b9a2c2",
-    line: "Wait. Show me that one more time?",
-    desc: "One eyebrow up, leaning toward the camera. She points at the thing she wants to understand.",
-    eye: "M20 30 Q32 22 44 30",
-    mouth: "M36 64 Q50 68 64 64",
-  },
-  {
-    id: "surprise",
-    label: "Surprise",
-    color: "#f01e42",
-    line: "Wait — really?! That changes everything.",
-    desc: "A sharp intake, eyes wide open. Her whole posture reacts in a single smooth transition.",
-    eye: "M20 28 Q32 10 44 28",
-    mouth: "M42 58 Q50 74 58 58",
+    pose: "point",
+    halo: "blue",
+    color: "#4f74d9",
+    line: "Hold on — what's that in the corner of your screen?",
+    desc: "She leans in and points at the thing she wants to understand.",
   },
   {
     id: "calm",
     label: "Calm",
-    color: "#8fa98f",
-    line: "Take your time. I'm here whenever you're ready.",
-    desc: "Soft smile, slow blink, steady voice. Explanations slow down so you can actually follow.",
-    eye: "M20 34 Q32 30 44 34",
-    mouth: "M32 62 Q50 70 68 62",
+    pose: "base",
+    halo: "mint",
+    color: "#2f9e6b",
+    line: "Take your time. I'm not going anywhere.",
+    desc: "Slow voice, soft answers. Patience is her default setting.",
+  },
+  {
+    id: "mischief",
+    label: "Mischief",
+    pose: "shush",
+    halo: "lilac",
+    color: "#8a63e8",
+    line: "Don't tell anyone, but I stacked the deck.",
+    desc: "She bluffs, teases and keeps your secrets — mostly.",
   },
 ];
 
@@ -46,69 +53,103 @@ const EmotionEngine = () => {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const idx = Math.min(emotions.length - 1, Math.max(0, Math.floor(v * emotions.length)));
+    const idx = Math.min(STATES.length - 1, Math.max(0, Math.floor(v * STATES.length)));
     if (idx !== active) setActive(idx);
   });
 
-  const e = emotions[active];
+  const s = STATES[active];
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("lucy:state", { detail: { pose: s.pose, halo: s.halo } })
+    );
+  }, [s]);
 
   return (
-    <section id="emotions" ref={ref} data-testid="emotions-section" className="relative h-[400vh]">
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 w-full grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
-          <div className="flex justify-center">
-            <Orb emotion={e} />
-          </div>
+    <section id="emotions" ref={ref} data-testid="emotions-section" className="relative h-[300vh]">
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Mobile: Lucy inline, centered */}
+        <div className="md:hidden h-full flex flex-col items-center justify-center px-6 text-center">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={s.pose}
+              src={`/lucy/${s.pose}.png`}
+              alt="Lucy"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4 }}
+              className="h-[34vh] w-auto drop-shadow-[0_16px_30px_rgba(97,84,140,0.25)]"
+            />
+          </AnimatePresence>
+          <StateCopy s={s} center />
+          <Dots active={active} />
+        </div>
 
-          <div>
-            <div className="font-mono-ui text-[10px] tracking-[0.3em] uppercase text-[#d91636]">
+        {/* Desktop: copy left, monitor right — Lucy holds center via LucyStage */}
+        <div className="hidden md:block h-full">
+          <div className="absolute left-[7vw] top-1/2 -translate-y-1/2 max-w-sm">
+            <div className="font-mono-ui text-[10px] tracking-[0.3em] uppercase text-[color:var(--pulse)]">
               // Emotion engine
             </div>
-            <h2 className="font-heading mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white">
+            <h2 className="font-heading mt-4 text-4xl lg:text-5xl font-bold tracking-tight text-[color:var(--ink)]">
               She doesn&apos;t just answer.
               <br />
-              She <span style={{ color: e.color, transition: "color 0.6s" }}>reacts</span>.
+              She <span style={{ color: s.color, transition: "color 0.7s" }}>reacts</span>.
             </h2>
+            <StateCopy s={s} />
+            <Dots active={active} />
+          </div>
 
-            <div className="mt-8 min-h-[150px]">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={e.id}
-                  initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -18, filter: "blur(6px)" }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  data-testid={`emotion-panel-${e.id}`}
-                >
-                  <div
-                    className="font-mono-ui text-[11px] tracking-[0.3em] uppercase"
-                    style={{ color: e.color }}
-                  >
-                    State :: {e.label}
-                  </div>
-                  <p className="font-heading mt-3 text-2xl sm:text-3xl font-semibold text-white leading-snug">
-                    “{e.line}”
-                  </p>
-                  <p className="mt-4 text-zinc-400 leading-relaxed max-w-md">{e.desc}</p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            <div className="mt-10 flex items-center gap-2.5">
-              {emotions.map((em, i) => (
-                <div
-                  key={em.id}
-                  className="h-1 rounded-full transition-all duration-500"
-                  style={{
-                    width: i === active ? 42 : 18,
-                    background: i === active ? em.color : "rgba(255,255,255,0.12)",
-                  }}
+          <div className="absolute right-[6vw] top-1/2 -translate-y-1/2 w-72">
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ amount: 0.4 }}
+              transition={{ type: "spring", stiffness: 70, damping: 20 }}
+              data-testid="emotion-state-monitor"
+              className="glass rounded-3xl p-5"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono-ui text-[9px] tracking-[0.25em] uppercase text-[color:var(--ink-faint)]">
+                  state monitor
+                </span>
+                <span className="flex items-center gap-1.5 font-mono-ui text-[9px] tracking-[0.25em] uppercase text-[#2f9e6b]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#46c589] lucy-blink" />
+                  live
+                </span>
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <span
+                  className="h-3 w-3 rounded-full transition-colors duration-700"
+                  style={{ background: s.color, boxShadow: `0 0 14px ${s.color}55` }}
                 />
-              ))}
-              <span className="ml-3 font-mono-ui text-[9px] tracking-[0.25em] uppercase text-zinc-600">
-                keep scrolling
-              </span>
-            </div>
+                <span
+                  className="font-heading text-xl font-bold transition-colors duration-700"
+                  style={{ color: s.color }}
+                >
+                  {s.label}
+                </span>
+              </div>
+              <div className="mt-4 flex items-end gap-[3px] h-10">
+                {Array.from({ length: 22 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="lucy-bar w-[3px] rounded-full transition-colors duration-700"
+                    style={{
+                      height: `${8 + ((i * 13) % 26)}px`,
+                      animationDelay: `${(i % 8) * 0.08}s`,
+                      background: s.color,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 font-mono-ui text-[10px] text-[color:var(--ink-faint)] leading-relaxed">
+                expression: {s.pose}
+                <br />
+                transition: 420 ms · spring
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -116,65 +157,41 @@ const EmotionEngine = () => {
   );
 };
 
-const Orb = ({ emotion }) => (
-  <div className="relative w-[260px] sm:w-[340px] aspect-square" data-testid="emotion-orb">
-    <motion.div
-      animate={{ backgroundColor: emotion.color, scale: [1, 1.12, 1] }}
-      transition={{
-        backgroundColor: { duration: 0.9 },
-        scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-      }}
-      className="absolute inset-0 rounded-full opacity-25 blur-[70px]"
-    />
-    <div
-      className="absolute -inset-5 rounded-full opacity-40"
-      style={{
-        background: `conic-gradient(from 0deg, transparent 0%, ${emotion.color}44 25%, transparent 50%, ${emotion.color}22 75%, transparent 100%)`,
-        animation: "lucy-spin 18s linear infinite",
-        transition: "background 0.9s",
-      }}
-    />
-    <div className="absolute inset-0 rounded-full glass !bg-black/40 grid place-items-center overflow-hidden">
+const StateCopy = ({ s, center = false }) => (
+  <div className={`mt-7 min-h-[130px] ${center ? "max-w-sm" : ""}`}>
+    <AnimatePresence mode="wait">
       <motion.div
-        animate={{ backgroundColor: emotion.color }}
-        transition={{ duration: 0.9 }}
-        className="absolute inset-0 opacity-[0.07]"
+        key={s.id}
+        initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        data-testid={`emotion-panel-${s.id}`}
+      >
+        <p className="font-heading text-2xl font-semibold text-[color:var(--ink)] leading-snug">
+          &ldquo;{s.line}&rdquo;
+        </p>
+        <p className="mt-3 text-[color:var(--ink-soft)] leading-relaxed">{s.desc}</p>
+      </motion.div>
+    </AnimatePresence>
+  </div>
+);
+
+const Dots = ({ active }) => (
+  <div className="mt-8 flex items-center gap-2.5 justify-center md:justify-start">
+    {STATES.map((em, i) => (
+      <div
+        key={em.id}
+        className="h-1 rounded-full transition-all duration-500"
+        style={{
+          width: i === active ? 42 : 18,
+          background: i === active ? em.color : "rgba(50,43,61,0.14)",
+        }}
       />
-      <svg viewBox="0 0 100 100" className="w-[62%] h-[62%]" fill="none">
-        <motion.circle
-          cx="50"
-          cy="50"
-          r="46"
-          strokeWidth="0.75"
-          animate={{ stroke: emotion.color }}
-          transition={{ duration: 0.9 }}
-          strokeOpacity="0.35"
-        />
-        <motion.path
-          strokeWidth="3"
-          strokeLinecap="round"
-          initial={{ d: emotions[0].eye, stroke: emotions[0].color }}
-          animate={{ d: emotion.eye, stroke: emotion.color }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          transform="translate(-3 6) scale(0.85)"
-        />
-        <motion.path
-          strokeWidth="3"
-          strokeLinecap="round"
-          initial={{ d: emotions[0].eye, stroke: emotions[0].color }}
-          animate={{ d: emotion.eye, stroke: emotion.color }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          transform="translate(35 6) scale(0.85)"
-        />
-        <motion.path
-          strokeWidth="3"
-          strokeLinecap="round"
-          initial={{ d: emotions[0].mouth, stroke: emotions[0].color }}
-          animate={{ d: emotion.mouth, stroke: emotion.color }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </svg>
-    </div>
+    ))}
+    <span className="ml-3 font-mono-ui text-[9px] tracking-[0.25em] uppercase text-[color:var(--ink-faint)]">
+      keep scrolling
+    </span>
   </div>
 );
 

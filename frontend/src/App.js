@@ -16,13 +16,14 @@ function App() {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: "rgba(10,10,12,0.92)",
-            border: "1px solid rgba(217,22,54,0.3)",
-            color: "#ededed",
+            background: "rgba(255,255,255,0.85)",
+            border: "1px solid rgba(120,102,168,0.18)",
+            color: "#322b3d",
             fontFamily: "Manrope, sans-serif",
             fontSize: "13px",
             borderRadius: "14px",
             backdropFilter: "blur(16px)",
+            boxShadow: "0 18px 44px -16px rgba(97,84,140,0.25)",
           },
         }}
       />

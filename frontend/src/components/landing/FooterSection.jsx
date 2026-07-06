@@ -51,13 +51,13 @@ const FooterSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease }}
         >
-          <div className="font-mono-ui text-[10px] tracking-[0.3em] uppercase text-[#d91636]">
+          <div className="font-mono-ui text-[10px] tracking-[0.3em] uppercase text-[color:var(--pulse)]">
             // Last call
           </div>
-          <h2 className="font-heading mt-5 text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-white">
-            Be <span className="text-gradient">first in line</span>.
+          <h2 className="font-heading mt-5 text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-[color:var(--ink)]">
+            Be <span className="text-iris-gradient">first in line</span>.
           </h2>
-          <p className="mt-5 max-w-md mx-auto text-zinc-400 leading-relaxed">
+          <p className="mt-5 max-w-md mx-auto text-[color:var(--ink-soft)] leading-relaxed">
             No spam. One email — when the gate opens. Early supporters get priority access.
           </p>
           <div className="mt-9 max-w-md mx-auto">
@@ -73,7 +73,7 @@ const FooterSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease }}
-            className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-white text-center"
+            className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-[color:var(--ink)] text-center"
           >
             Questions, answered.
           </motion.h3>
@@ -84,12 +84,12 @@ const FooterSection = () => {
                 key={i}
                 value={`item-${i + 1}`}
                 data-testid={`faq-accordion-item-${i + 1}`}
-                className="glass rounded-2xl px-6 border-white/10"
+                className="glass rounded-2xl px-6 border-[color:var(--glass-border)]"
               >
-                <AccordionTrigger className="text-left font-heading text-base font-semibold text-white hover:no-underline hover:text-[#d91636] py-5 [&>svg]:text-zinc-500">
+                <AccordionTrigger className="text-left font-heading text-base font-semibold text-[color:var(--ink)] hover:no-underline hover:text-[color:var(--pulse)] py-5 [&>svg]:text-[color:var(--ink-faint)]">
                   {f.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-zinc-400 leading-relaxed pb-5">
+                <AccordionContent className="text-sm text-[color:var(--ink-soft)] leading-relaxed pb-5">
                   {f.a}
                 </AccordionContent>
               </AccordionItem>
@@ -105,20 +105,20 @@ const FooterSection = () => {
         >
           <span
             className="text-transparent"
-            style={{ WebkitTextStroke: "1px rgba(255,255,255,0.14)" }}
+            style={{ WebkitTextStroke: "1px rgba(50,43,61,0.14)" }}
           >
             DEXALAB
           </span>
-          <span className="opacity-25" style={{ color: "#d91636" }}>.ORG</span>
+          <span className="opacity-30" style={{ color: "#6c4cf1" }}>.ORG</span>
         </motion.div>
       </div>
 
-      <div className="border-t border-white/[0.07] px-6 py-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 font-mono-ui text-[10px] tracking-[0.2em] uppercase text-zinc-600">
+      <div className="border-t border-[color:var(--glass-border)] px-6 py-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 font-mono-ui text-[10px] tracking-[0.2em] uppercase text-[color:var(--ink-faint)]">
           <span>© 2026 Dexalab · All rights reserved</span>
           <span className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#d91636] lucy-blink" />
-            Lucy · Preview build 0.8
+            <span className="h-1.5 w-1.5 rounded-full bg-[#46c589] lucy-blink" />
+            Lucy · Preview build 0.9
           </span>
         </div>
       </div>
