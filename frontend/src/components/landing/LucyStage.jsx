@@ -7,7 +7,6 @@ import {
   useScroll,
   useSpring,
   useTransform,
-  useVelocity,
   useMotionValueEvent,
   useReducedMotion,
 } from "framer-motion";
@@ -28,7 +27,7 @@ import LucySprite from "./LucySprite";
  *   lucy:celebrate                 — brief excited flash (waitlist success)
  */
 
-const SPRING = { type: "spring", stiffness: 56, damping: 17, mass: 0.9 };
+const SPRING = { type: "spring", stiffness: 64, damping: 24, mass: 0.9 };
 
 /* Piecewise-linear interpolation over sorted stops. */
 const interp = (v, stops, values) => {
@@ -154,9 +153,20 @@ const LucyStage = ({ heroTrackRef }) => {
     };
   }, []);
 
-  const velocity = useVelocity(scrollY);
-  const leanRaw = useTransform(velocity, [-1600, 1600], [2.6, -2.6]);
-  const lean = useSpring(leanRaw, { stiffness: 120, damping: 19 });
+  /* Weight, not swing: fast scrolling drags her a few px along the scroll
+     direction and she settles back — inertia instead of pendulum. The
+     explicit scroll-end reset matters: velocity reads can hold a stale
+     value when events stop, which would leave her frozen off-center. */
+  const dragTarget = useMotionValue(0);
+  const dragTimer = useRef(null);
+  useMotionValueEvent(scrollY, "change", () => {
+    const v = scrollY.getVelocity();
+    dragTarget.set(Math.max(-7, Math.min(7, -v / 230)));
+    clearTimeout(dragTimer.current);
+    dragTimer.current = setTimeout(() => dragTarget.set(0), 140);
+  });
+  useEffect(() => () => clearTimeout(dragTimer.current), []);
+  const drag = useSpring(dragTarget, { stiffness: 110, damping: 26 });
 
   const x = useMotionTemplate`${xVw}vw`;
   const maskEnd = useTransform(maskMv, (v) => v + 16);
@@ -177,7 +187,7 @@ const LucyStage = ({ heroTrackRef }) => {
         className="absolute inset-0"
       >
         <motion.div
-          style={{ x, scale: scaleMv, rotate: reduced ? 0 : lean, opacity: opacityMv }}
+          style={{ x, y: reduced ? 0 : drag, scale: scaleMv, opacity: opacityMv }}
           className="absolute left-0 right-0 top-[6vh] mx-auto h-[84vh] w-[58vh] origin-top"
         >
           <motion.div style={{ maskImage: mask, WebkitMaskImage: mask }} className="relative h-full w-full">
@@ -200,7 +210,7 @@ const LucyStage = ({ heroTrackRef }) => {
               className="h-full w-full"
             >
               <motion.div
-                animate={reduced ? undefined : { rotate: [-0.35, 0.35, -0.35] }}
+                animate={reduced ? undefined : { rotate: [-0.22, 0.22, -0.22] }}
                 transition={{ duration: 8.3, repeat: Infinity, ease: "easeInOut" }}
                 className="h-full w-full"
               >
