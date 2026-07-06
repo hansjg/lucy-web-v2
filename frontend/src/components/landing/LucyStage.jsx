@@ -75,6 +75,12 @@ const LucyStage = ({ heroTrackRef }) => {
   const scaleMv = useMotionValue(1.9);
   const opacityMv = useMotionValue(1);
   const maskMv = useMotionValue(36);
+  /* The sprite box scales from a fixed top anchor (origin-top — see below),
+     so its top edge never moves. That's right for the hero zoom, but at
+     docked scales it pins her head a fixed 6vh from the viewport top no
+     matter how small she gets, clipping into the header. Push the whole
+     box down for every non-hero beat to compensate. */
+  const dockYMv = useMotionValue(0);
 
   /* Hero scrub — driven off the global scroll position against the hero
      track's measured geometry (the track is owned by Hero.jsx, so
@@ -91,6 +97,7 @@ const LucyStage = ({ heroTrackRef }) => {
     xVw.set(interp(p, [0, 0.72, 0.98], [0, 0, 21]));
     maskMv.set(interp(p, [0.08, 0.44], [36, 112]));
     opacityMv.set(1);
+    dockYMv.set(0);
     if (!celebrating.current) setPose(p < 0.32 ? "wave" : "base");
     setHalo("pink");
   });
@@ -120,11 +127,12 @@ const LucyStage = ({ heroTrackRef }) => {
     animate(xVw, cfg.x, opts);
     animate(scaleMv, cfg.scale, opts);
     animate(maskMv, 112, opts);
+    animate(dockYMv, 16, opts);
     animate(opacityMv, cfg.opacity, reduced ? { duration: 0 } : { duration: 0.8 });
     const state = beat === "emotions" && emotionState.current ? emotionState.current : cfg;
     if (!celebrating.current) setPose(state.pose);
     setHalo(state.halo);
-  }, [beat, reduced, xVw, scaleMv, maskMv, opacityMv]);
+  }, [beat, reduced, xVw, scaleMv, maskMv, opacityMv, dockYMv]);
 
   useEffect(() => {
     const onState = (e) => {
@@ -160,6 +168,7 @@ const LucyStage = ({ heroTrackRef }) => {
   const dragTarget = useMotionValue(0);
   const dragTimer = useRef(null);
   useMotionValueEvent(scrollY, "change", () => {
+    if (reduced) return;
     const v = scrollY.getVelocity();
     dragTarget.set(Math.max(-7, Math.min(7, -v / 230)));
     clearTimeout(dragTimer.current);
@@ -169,6 +178,7 @@ const LucyStage = ({ heroTrackRef }) => {
   const drag = useSpring(dragTarget, { stiffness: 110, damping: 26 });
 
   const x = useMotionTemplate`${xVw}vw`;
+  const y = useMotionTemplate`calc(${dockYMv}vh + ${drag}px)`;
   const maskEnd = useTransform(maskMv, (v) => v + 16);
   const mask = useMotionTemplate`linear-gradient(to bottom, black ${maskMv}%, transparent ${maskEnd}%)`;
   const shadowOpacity = useTransform(maskMv, [92, 112], [0, 0.45]);
@@ -187,7 +197,7 @@ const LucyStage = ({ heroTrackRef }) => {
         className="absolute inset-0"
       >
         <motion.div
-          style={{ x, y: reduced ? 0 : drag, scale: scaleMv, opacity: opacityMv }}
+          style={{ x, y, scale: scaleMv, opacity: opacityMv }}
           className="absolute left-0 right-0 top-[6vh] mx-auto h-[84vh] w-[58vh] origin-top"
         >
           <motion.div style={{ maskImage: mask, WebkitMaskImage: mask }} className="relative h-full w-full">
