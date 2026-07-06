@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only regression for Lucy AI landing (crimson theme + LucyPresenter). Verified page load, all 6 sprite HTTP 200, LucyPresenter pose+side swaps across 6 sections, typewriter speech bubbles, both hero & footer waitlist submissions (API 200), header nav smooth-scroll, join CTA scroll, all 6 FAQ accordion items, emotion sticky-scroll cycling all 4 panels (joy/curiosity/surprise/calm), no cyan colors present anywhere, mobile presenter hidden with static hero-lucy-mobile visible, and no horizontal overflow.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Hero.jsx ChatSequence still keeps a legacy cyan glow value in shadow: `0_0_60px_rgba(0,240,255,0.06)` (line 124) and `0_0_12px_rgba(0,240,255,0.9)` on the scan-line (line 162). These are near-invisible on the dark bg but are stale cyan tokens leftover from the previous palette — should swap to crimson rgba(217,22,54,x) for consistency.",
+    "LucyPresenter: cfg.side transition uses `left` % which forces layout paint per frame — acceptable at low frequency, fine for now.",
+    "EmotionEngine only mounts a single panel via AnimatePresence — testid queries for non-active panels return count=0. Not a bug (by design), but worth documenting for future testers."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "none — public page",
+  "seed_data_creation": "Waitlist entries created via API during test: 2 random emails (hero + footer)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://lucy-voice-vision.preview.emergentagent.com. Lenis smooth scroll active. Speech bubble uses typewriter — wait ~2s after section change. Footer waitlist submit button can be overlapped by 'Made with Emergent' widget in bottom-right on desktop — always scrollIntoView the form and use force=True click. LucyPresenter pointer-events-none by design so does not block form clicks. Emotion sticky-scroll: only 1 emotion-panel-{id} is present in DOM at a time (AnimatePresence mode='wait'); to verify cycling, scroll from #emotions offset in ~300px increments.",
+  "rca of the issue": "No blocking issues found. All 6 pose sprites (base/wave/point/excited/shush/thumbs) return 200. Section→pose→side mapping verified: hero→wave/right, capabilities→point/right, emotions→excited/left, privacy→shush/right, join→thumbs/left, faq→base/right. No cyan (#00f0ff / rgb(0,240,255)) computed colors detected on any element."
+}

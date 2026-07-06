@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 4 — SectionRail overlap bug fix verified. Tested at both 1920x1080 and 1280x800. All 5 acceptance criteria PASS. Smoke checks (waitlist form, emotion tabs, FAQ) also present.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "1920x1080": {
+      "rail_visible": true,
+      "rail_bbox": {"x": 16, "y": 462.5, "width": 181.2, "height": 155},
+      "hero_h1_bbox": {"x": 352, "y": 193.5, "width": 686, "height": 288},
+      "rail_right_edge": 197.2,
+      "h1_left_edge": 352,
+      "overlap": false,
+      "compact_labels_opacity_zero": "All 5 labels (BOOT, CAPABILITIES, EMOTION ENGINE, LOCAL, QUESTIONS) have computed opacity: 0 by default",
+      "rail_link_features_click_scroll_y": 937,
+      "active_state_features": {"bg": "rgb(255, 0, 60) (lucy-red)", "width": "22px"}
+    },
+    "1280x800": {
+      "rail_computed_display": "none",
+      "rail_visible": false,
+      "verdict": "Rail correctly hidden below 2xl breakpoint"
+    },
+    "smoke_checks": {
+      "waitlist_form_present": true,
+      "emotion_tab_present": true,
+      "faq_section_present": true
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: SectionRail label spans use opacity:0 but retain layout width (whitespace-nowrap). Rail width is ~181px even in compact state because labels reserve space. Overlap still fine (rail.right=197 << h1.left=352), but if hero shifts left in future, consider using `hidden group-hover:inline` or `w-0 group-hover:w-auto` to keep rail truly compact in DOM."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "SectionRail bug fix verified end-to-end. Component only renders at 2xl (>=1536px), labels stay invisible until rail hover, active tick turns red (rgb 255,0,60) with 22px width. Hero H1 no longer overlaps. Other landing page components (waitlist, emotion tabs, FAQ) confirmed still rendered.",
+  "rca of the issue": "Previous SectionRail rendered full labels ('01 · CAPABILITIES' etc.) by default at all breakpoints, extending past hero H1 left edge. Fix: added `hidden 2xl:flex` for breakpoint gating and wrapped {s.label} in opacity-0/group-hover:opacity-100 span. Verified rail.right (197px) is well left of h1.left (352px) at 1920 and rail is display:none at 1280."
+}

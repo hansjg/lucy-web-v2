@@ -1,0 +1,5 @@
+/* App-specific styles for Lucy landing */
+.App {
+  min-height: 100vh;
+  background: var(--lucy-bg);
+}

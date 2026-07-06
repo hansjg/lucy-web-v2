@@ -1,0 +1,37 @@
+{
+  "summary": "Frontend smoke + targeted regression test for the two bug fixes in iteration 2: (a) Hero 4th chat bubble now reads 'Accessing your camera…' (no longer 'Looking at your screen now'), and (b) Emotions calm tab renders the quote with real apostrophes — no '&apos;' literal anywhere on the rendered page. Backend skipped per request (was 100% green in iteration_1).",
+  "tests_executed": [
+    {"id": "T1a", "check": "Hero chat bubbles contain 'Accessing your camera…'", "result": "PASS"},
+    {"id": "T1b", "check": "Hero chat bubbles do NOT contain 'Looking at your screen'", "result": "PASS"},
+    {"id": "T2a", "check": "Clicking emotion-tab-calm shows 'Take your time...' quote", "result": "PASS"},
+    {"id": "T2b", "check": "Calm quote contains real apostrophe (ASCII ' or U+2019)", "result": "PASS — rendered as straight ASCII apostrophes: \"Take your time. I'm here whenever you're ready.\""},
+    {"id": "T2c", "check": "Calm quote does NOT contain literal '&apos;'", "result": "PASS"},
+    {"id": "T3",  "check": "No literal '&apos;' anywhere in document.body.innerText", "result": "PASS"},
+    {"id": "T4",  "check": "Hero waitlist submit shows position result", "result": "PASS"},
+    {"id": "T5",  "check": "Emotion tab switching (Focus) updates quote", "result": "PASS — shows 'Hold on — let me look at that more carefully.'"},
+    {"id": "T6",  "check": "FAQ accordion click", "result": "NOT VERIFIED via testid — selector [data-testid^=\"faq-item-\"] did not match. FAQ section is visible in screenshot and appears to render correctly, but its data-testid attributes (if any) were not exercised. Not a regression of this fix; informational only."},
+    {"id": "T7",  "check": "Footer waitlist submit clicked", "result": "PASS — input/button found and clicked without error"}
+  ],
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json", "/app/backend/tests/backend_test.py (not re-run)"],
+  "action_items": [
+    "Optional: add data-testid attributes to FAQ accordion items (e.g., data-testid=\"faq-item-{n}\" or \"faq-toggle-{n}\") to make accordion behaviour testable in future iterations. Current iteration's fixes are not affected."
+  ],
+  "critical_code_review_comments": [
+    "Both fixes are clean and minimal: Hero.jsx ~line 239–241 uses 'Accessing your camera…' inside ChatBubble (role=lucy, typing). Emotions.jsx line 58 uses real ASCII apostrophes in calm.line, and line 167 renders {active.line} directly inside curly quotes (“{active.line}”) with no .replace() — exactly as specified.",
+    "Note: other strings on the page still use JSX entity &apos; in source (e.g., Hero h1 'SHE&apos;S NOT', Emotions h2 'doesn&apos;t answer', Hero first chat bubble 'I&apos;m Lucy') — these all render as real apostrophes in the DOM (verified via document.body.innerText scan)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "skipped (per request)", "frontend": "100% (9/9 critical checks; FAQ testid absence is informational only)"},
+  "test_credentials": "n/a",
+  "seed_data_creation": "Submitted test waitlist emails: test_smoke@neural.link (hero), test_footer@neural.link (footer). Backend was not retested; these entries may live in the waitlist collection.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 2 verified two cosmetic bug fixes only. Hero 4th chat bubble = 'Accessing your camera…'. Emotions calm tab quote = \"Take your time. I'm here whenever you're ready.\" with real apostrophes. No '&apos;' literal anywhere in rendered DOM. Smoke checks on waitlist (hero + footer), emotion tab switching (calm + focus) all passed. FAQ accordion items currently have no [data-testid^=\"faq-item-\"] selector — if a future test needs to assert FAQ behaviour, ask main agent to add data-testid to FaqItem buttons.",
+  "rca_of_the_issue": "Original bug: visible literal 'you&apos;re' was rendered in the Emotions 'LUCY SAYS' panel because the source string used &apos; inside a regular JavaScript string literal (not JSX text) — JSX entity decoding only applies to text nodes inside JSX, not to string values stored in a JS object's property. Fix correctly switches calm.line to use real ASCII apostrophes so the raw string value matches what is rendered. Hero typing bubble copy change is a simple string update. Both verified against the production preview URL."
+}
